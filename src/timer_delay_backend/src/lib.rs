@@ -23,6 +23,33 @@ pub fn with_memory_manager<R>(f: impl FnOnce(&MemoryManager<DefaultMemoryImpl>) 
 }
 
 #[ic_cdk::update]
+async fn timer() -> Result<String, String> {
+    // retry 1000 times
+    for _ in 0..1000 {
+        ic_cdk::println!("Checking state...");
+        // call get_state through inter-canister call, to give up control
+        match ic_cdk::call::<((),), (u8,)>(ic_cdk::id(), "get_state", ((),))
+            .await
+            .map_err(|e| e.1)?
+            // Access the first element of the tuple, which is the `Result<BlockIndex, TransferError>`, for further processing.
+            .0
+        {
+            // If the state is a multiple of 2, we can proceed with the complex code
+            state if state % 2 == 0 => {
+                ic_cdk::println!("State is a multiple of 2: {}", state);
+                // state is met. continue with complex code
+                // ...
+                // no need to set another timer
+                return Ok("All done".to_string());
+            }
+            _ => {} // retry again
+        }
+    }
+
+    Err("Timed out".to_string())
+}
+
+#[ic_cdk::update]
 fn timer_async() -> u64 {
     let request_id = REQUEST_ID.with(|cell| {
         let mut id = cell.borrow_mut();
@@ -41,9 +68,14 @@ fn timer_async() -> u64 {
     request_id
 }
 
+#[ic_cdk::query]
+fn get_state() -> u8 {
+    STATE.with(|cell| *cell.borrow().get())
+}
+
 async fn check_state_timer() {
     ic_cdk::println!("Checking state...");
-    let state = STATE.with(|cell| *cell.borrow().get());
+    let state = get_state();
     if state % 2 == 0 {
         ic_cdk::println!("State is a multiple of 2: {}", state);
         // state is met. continue with complex code
