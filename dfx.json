@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "timer_delay_backend": {
+      "candid": "src/timer_delay_backend/timer_delay_backend.did",
+      "package": "timer_delay_backend",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
