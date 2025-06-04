@@ -46,8 +46,12 @@ async fn check_state_timer() {
     let state = STATE.with(|cell| *cell.borrow().get());
     if state % 2 == 0 {
         ic_cdk::println!("State is a multiple of 2: {}", state);
+        // set is met. continue with complex code
+        // ...
+        // no need to set another timer
         return;
     }
+    // state not met, set another timer
     ic_cdk_timers::set_timer(Duration::from_millis(2000), || {
         ic_cdk::spawn(async {
             check_state_timer().await;
